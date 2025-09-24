@@ -54,25 +54,29 @@ public class OrderServiceNew(IOrderRepository orders, ICustomerRepository custom
         var items = req.Items.ToList();
         var orderNew = OrderNew.New(customer.Id, items);
         // save as old model to reuse repository
-        var old = new Order { Id = orderNew.Id, CustomerId = orderNew.CustomerId, CreatedUtc = orderNew.CreatedUtc, Items = items.Select(i => new OrderItem { ProductId = i.ProductId, Quantity = i.Quantity }).ToList(), Status = orderNew.Status };
+        var old = new Order ( Id: orderNew.Id, CustomerId: orderNew.CustomerId, CreatedUtc: orderNew.CreatedUtc, Items: items.Select(i => new OrderItem ( ProductId: i.ProductId, Quantity: i.Quantity )).ToList(), Status: orderNew.Status );
         _orders.Add(old);
         return orderNew;
     }
 
     // Async stream: emits order status over time using yield return
-    public async IAsyncEnumerable<string> ProcessOrderStreamAsync(Guid id, [EnumeratorCancellation] CancellationToken ct = default)
+    public async IAsyncEnumerable<string> ProcessOrderAsync(Guid id, [EnumeratorCancellation] CancellationToken ct = default)
     {
         var order = _orders.Get(id) ?? throw new InvalidOperationException("Order not found");
 
-        order.Status = "Brewing"; _orders.Update(order);
+        order = order with { Status = "Brewing" };
+        _orders.Update(order);
+
         yield return "Brewing";
         await Task.Delay(200, ct);
 
-        order.Status = "Packing"; _orders.Update(order);
+        order = order with { Status = "Packing" };
+        _orders.Update(order);
         yield return "Packing";
         await Task.Delay(200, ct);
 
-        order.Status = "Ready"; _orders.Update(order);
+        order = order with { Status = "Ready" };
+        _orders.Update(order);
         yield return "Ready";
         await Task.Delay(200, ct);
     }

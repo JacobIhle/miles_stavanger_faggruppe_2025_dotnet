@@ -38,7 +38,7 @@ public static class ProgramNew
             try
             {
                 ctx.Response.Headers.CacheControl = "no-store";
-                await foreach (var step in svc.ProcessOrderStreamAsync(id, ctx.RequestAborted))
+                await foreach (var step in svc.ProcessOrderAsync(id, ctx.RequestAborted))
                 {
                     await ctx.Response.WriteAsync(step + "\n");
                     await ctx.Response.Body.FlushAsync();
@@ -65,7 +65,10 @@ public static class ProgramNew
         {
             Products = new List<Product>
             {
-                new (name: "test", "sku", price: 1.0m)
+                new (name: "test", "sku", price: 1.0m),
+                new ("Espresso", "ESP-01", 29.0m),
+                new ("Latte", "LAT-01", 39.0m),
+                new ("Cappuccino", "CAP-01", 35.0m),
                 // new ( Sku = "ESP-01", Name = "Espresso", Price = 29.0m ),
                 // new() { Sku = "LAT-01", Name = "Latte", Price = 39.0m },
                 // new() { Sku = "CAP-01", Name = "Cappuccino", Price = 35.0m },

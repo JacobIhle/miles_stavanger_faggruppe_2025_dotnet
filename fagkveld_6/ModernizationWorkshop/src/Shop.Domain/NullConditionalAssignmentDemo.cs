@@ -33,5 +33,5 @@ public static class NullConditionalAssignmentDemo
     }
 
     public static Order CreateSampleOrder()
-        => new() { Status = "Demo" };
+        => new(status : "Demo", customerId : Guid.NewGuid(), items : new List<OrderItem> { new (Guid.NewGuid(), 1) });
 }

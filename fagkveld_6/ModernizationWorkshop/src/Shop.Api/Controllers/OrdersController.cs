@@ -34,7 +34,11 @@ public class OrdersController : ControllerBase
     [HttpPost("{id}/process")]
     public async Task<ActionResult<IEnumerable<string>>> Process(Guid id, CancellationToken ct)
     {
-        var steps = await _orders.ProcessOrderAsync(id, ct);
+        var steps = new List<string>();
+        await foreach (var step in _orders.ProcessOrderAsync(id, ct))
+        {
+            steps.Add(step);
+        }
         return Ok(steps);
     }
 }

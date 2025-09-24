@@ -35,15 +35,11 @@ static Catalog SeedCatalog()
     {
         Products = new List<Product>
         {
-            
+            new (name: "test", "sku", price: 1.0m),
+            new ("Espresso", "ESP-01", 29.0m),
+            new ("Latte", "LAT-01", 39.0m),
+            new ("Cappuccino", "CAP-01", 35.0m),
         }
-        
-        // Products = new List<Product>
-        // {
-        //     new() { Sku = "ESP-01", Name = "Espresso", Price = 29.0m },
-        //     new() { Sku = "LAT-01", Name = "Latte", Price = 39.0m },
-        //     new() { Sku = "CAP-01", Name = "Cappuccino", Price = 35.0m },
-        // }
     };
     return catalog;
 }

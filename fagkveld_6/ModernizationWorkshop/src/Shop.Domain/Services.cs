@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -101,36 +102,34 @@ public class OrderService
     {
         var customer = _customers.Get(req.CustomerId);
         if (customer == null) throw new InvalidOperationException("Customer not found");
-
+        
         var order = new Order
-        {
-            CustomerId = customer.Id,
-            Items = req.Items.ToList(),
-            Status = "Received",
-        };
+        (
+            customerId: customer.Id, items: req.Items.ToList(), status: "Received"
+        );
 
         _orders.Add(order);
         return order;
     }
 
-    // Old-style polling updates; will be turned into async streams + yield in ServicesNew.cs
-    public async Task<IEnumerable<string>> ProcessOrderAsync(Guid id, CancellationToken ct = default)
+    public async IAsyncEnumerable<string> ProcessOrderAsync(Guid id, [EnumeratorCancellation] CancellationToken ct = default)
     {
         var order = _orders.Get(id) ?? throw new InvalidOperationException("Order not found");
-        var events = new List<string>();
 
-        order.Status = "Brewing"; _orders.Update(order);
-        events.Add("Brewing");
+        order = order with { Status = "Brewing" };
+        _orders.Update(order);
+
+        yield return "Brewing";
         await Task.Delay(200, ct);
 
-        order.Status = "Packing"; _orders.Update(order);
-        events.Add("Packing");
+        order = order with { Status = "Packing" };
+        _orders.Update(order);
+        yield return "Packing";
         await Task.Delay(200, ct);
 
-        order.Status = "Ready"; _orders.Update(order);
-        events.Add("Ready");
+        order = order with { Status = "Ready" };
+        _orders.Update(order);
+        yield return "Ready";
         await Task.Delay(200, ct);
-
-        return events;
     }
 }
