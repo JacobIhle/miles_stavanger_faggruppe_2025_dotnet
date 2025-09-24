@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Shop.Domain;
 
 
@@ -6,11 +8,35 @@ public record Customer(Guid Id, string Name, string Email)
     public Customer(string name, string email) : this(Guid.NewGuid(), name, email) { }
 }
 
-public record Product(Guid Id, string Sku, string Name, decimal Price)
+public record Product
 {
-    public Product(string name, string sku, decimal price) : this(Guid.NewGuid(), sku, name, price) { }
-}
+    public Guid Id { get; init; }
+    public string Name { get; init; } = "";
+    public string Sku { get; init; } = "";
+    public decimal Price { get; init; }
 
+    // Parameterless for System.Text.Json
+    public Product() { }
+
+    // Convenience ctor for seeding (auto-generate Id)
+    public Product(string name, string sku, decimal price)
+    {
+        Id = Guid.NewGuid();
+        Name = name;
+        Sku = sku;
+        Price = price;
+    }
+
+    // Full ctor for deserialization when Id is present
+    [JsonConstructor]
+    public Product(Guid id, string name, string sku, decimal price)
+    {
+        Id = id;
+        Name = name;
+        Sku = sku;
+        Price = price;
+    }
+}
 
 public record OrderItem(Guid ProductId, int Quantity);
 

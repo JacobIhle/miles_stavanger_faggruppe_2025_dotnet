@@ -65,7 +65,7 @@ public static class ProgramNew
         {
             Products = new List<Product>
             {
-                new (name: "test", "sku", price: 1.0m),
+                new ("test", "sku", price: 1.0m),
                 new ("Espresso", "ESP-01", 29.0m),
                 new ("Latte", "LAT-01", 39.0m),
                 new ("Cappuccino", "CAP-01", 35.0m),
