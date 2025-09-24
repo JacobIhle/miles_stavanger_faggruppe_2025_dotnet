@@ -35,10 +35,15 @@ static Catalog SeedCatalog()
     {
         Products = new List<Product>
         {
-            new() { Sku = "ESP-01", Name = "Espresso", Price = 29.0m },
-            new() { Sku = "LAT-01", Name = "Latte", Price = 39.0m },
-            new() { Sku = "CAP-01", Name = "Cappuccino", Price = 35.0m },
+            
         }
+        
+        // Products = new List<Product>
+        // {
+        //     new() { Sku = "ESP-01", Name = "Espresso", Price = 29.0m },
+        //     new() { Sku = "LAT-01", Name = "Latte", Price = 39.0m },
+        //     new() { Sku = "CAP-01", Name = "Cappuccino", Price = 35.0m },
+        // }
     };
     return catalog;
 }
@@ -57,7 +62,7 @@ static void SeedData(IServiceProvider services)
     }
 
     // Seed a default customer
-    var ada = new Customer { Name = "Ada Lovelace", Email = "ada@example.com" };
+    var ada = new Customer("ada", "asd");
     customers.Add(ada);
 
     // Demonstrate C# 14 null-conditional assignment feature (old way shown for contrast)

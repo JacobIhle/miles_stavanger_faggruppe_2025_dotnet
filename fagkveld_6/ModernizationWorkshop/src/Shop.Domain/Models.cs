@@ -1,39 +1,44 @@
 namespace Shop.Domain;
 
-public class Customer
-{
-    public Guid Id { get; set; }
-    public string Name { get; set; }
-    public string Email { get; set; }
 
-    public Customer()
-    {
-        Id = Guid.NewGuid();
-        Name = string.Empty;
-        Email = string.Empty;
-    }
+public record Customer(Guid Id, string Name, string Email)
+{
+    public Customer(string name, string email) : this(Guid.NewGuid(), name, email) { }
 }
 
-public class Product
-{
-    public Guid Id { get; set; }
-    public string Sku { get; set; }
-    public string Name { get; set; }
-    public decimal Price { get; set; }
-
-    public Product()
-    {
-        Id = Guid.NewGuid();
-        Sku = string.Empty;
-        Name = string.Empty;
-    }
-}
+// public class Product
+// {
+//     public Guid Id { get; set; }
+//     public string Sku { get; set; }
+//     public string Name { get; set; }
+//     public decimal Price { get; set; }
+//
+//     public Product()
+//     {
+//         Id = Guid.NewGuid();
+//         Sku = string.Empty;
+//         Name = string.Empty;
+//     }
+// }
 
 public class OrderItem
 {
     public Guid ProductId { get; set; }
     public int Quantity { get; set; }
 }
+
+public record Product(Guid Id, string Name, string Sku, decimal Price)
+{
+    public Product(string name, string sku, decimal price) : this(Guid.NewGuid(), name, sku, price) { }
+}
+
+// public record OrderItem(Guid ProductId, int Quantity);
+//
+// public record Order(Guid Id, Guid CustomerId, DateTime CreatedUtc, List<OrderItem> OrderItems, string Status)
+// {
+//     public Order(Guid customerId, List<OrderItem> orderItems, string status) : this(Guid.NewGuid(),customerId DateTime.UtcNow, orderItems, status) { }
+// }
+
 
 public class Order
 {
