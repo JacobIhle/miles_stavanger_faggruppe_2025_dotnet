@@ -1,14 +1,7 @@
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Shop.Domain;
-
-// Old-style services (will create ServicesNew.cs variants with primary constructors, async streams, Lazy<T>, yield, etc.)
 
 public interface ICustomerRepository
 {
@@ -58,14 +51,9 @@ public class InMemoryOrderRepository : IOrderRepository
     public void Update(Order o) => _store[o.Id] = o;
 }
 
-public class PricingService
+public class PricingService(Catalog catalog)
 {
-    private readonly Catalog _catalog;
-
-    public PricingService(Catalog catalog)
-    {
-        _catalog = catalog;
-    }
+    private readonly Catalog _catalog = catalog;
 
     public decimal CalculateTotal(Order order)
     {
@@ -82,25 +70,16 @@ public class PricingService
     }
 }
 
-public class OrderService
+public class OrderService(IOrderRepository orders, ICustomerRepository customers, PricingService pricing)
 {
-    private readonly IOrderRepository _orders;
-    private readonly ICustomerRepository _customers;
-    private readonly PricingService _pricing;
+    private readonly PricingService _pricing = pricing; // kept although not used directly here yet
 
-    public OrderService(IOrderRepository orders, ICustomerRepository customers, PricingService pricing)
-    {
-        _orders = orders;
-        _customers = customers;
-        _pricing = pricing;
-    }
-
-    public Order? Get(Guid id) => _orders.Get(id);
-    public IEnumerable<Order> GetAll() => _orders.GetAll();
+    public Order? Get(Guid id) => orders.Get(id);
+    public IEnumerable<Order> GetAll() => orders.GetAll();
 
     public Order Create(CreateOrderRequest req)
     {
-        var customer = _customers.Get(req.CustomerId);
+        var customer = customers.Get(req.CustomerId);
         if (customer == null) throw new InvalidOperationException("Customer not found");
         
         var order = new Order
@@ -108,27 +87,27 @@ public class OrderService
             customerId: customer.Id, items: req.Items.ToList(), status: "Received"
         );
 
-        _orders.Add(order);
+        orders.Add(order);
         return order;
     }
 
     public async IAsyncEnumerable<string> ProcessOrderAsync(Guid id, [EnumeratorCancellation] CancellationToken ct = default)
     {
-        var order = _orders.Get(id) ?? throw new InvalidOperationException("Order not found");
+        var order = orders.Get(id) ?? throw new InvalidOperationException("Order not found");
 
         order = order with { Status = "Brewing" };
-        _orders.Update(order);
+        orders.Update(order);
 
         yield return "Brewing";
         await Task.Delay(200, ct);
 
         order = order with { Status = "Packing" };
-        _orders.Update(order);
+        orders.Update(order);
         yield return "Packing";
         await Task.Delay(200, ct);
 
         order = order with { Status = "Ready" };
-        _orders.Update(order);
+        orders.Update(order);
         yield return "Ready";
         await Task.Delay(200, ct);
     }

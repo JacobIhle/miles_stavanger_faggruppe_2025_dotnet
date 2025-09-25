@@ -2,11 +2,9 @@ using Shop.Domain;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Services
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
 
-// DI: In-memory repositories and services
 builder.Services.AddSingleton<ICustomerRepository, InMemoryCustomerRepository>();
 builder.Services.AddSingleton<IProductRepository, InMemoryProductRepository>();
 builder.Services.AddSingleton<IOrderRepository, InMemoryOrderRepository>();
@@ -21,11 +19,11 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-// Map controllers (old-style baseline)
 app.MapControllers();
 
 // Seed a couple of customers and products at startup
 SeedData(app.Services);
+SeedInitialOrder(app.Services);
 
 app.Run();
 
@@ -51,18 +49,40 @@ static void SeedData(IServiceProvider services)
     var products = scope.ServiceProvider.GetRequiredService<IProductRepository>();
     var catalog = scope.ServiceProvider.GetRequiredService<Catalog>();
 
-    // Seed products to product repository from catalog
     foreach (var p in catalog.Products)
     {
         products.Add(p);
     }
 
-    // Seed a default customer
-    var ada = new Customer("ada", "asd");
+    var ada = new Customer("Ada Lovelace", "Ada.Lovelace@example.com");
     customers.Add(ada);
 
-    // Demonstrate C# 14 null-conditional assignment feature (old way shown for contrast)
     var demoCustomer = new CustomerWithLastOrder(ada.Name);
-    NullConditionalAssignmentDemo.AssignOrderOldWay(demoCustomer);
-    Console.WriteLine($"\u001b[36mDemo (old way) LastOrder status: {demoCustomer.LastOrder?.Status ?? "null"}\u001b[0m");
+    NullConditionalAssignmentDemo.AssignOrder(demoCustomer);
+}
+
+static void SeedInitialOrder(IServiceProvider services)
+{
+    using var scope = services.CreateScope();
+    var orders = scope.ServiceProvider.GetRequiredService<IOrderRepository>();
+    var customers = scope.ServiceProvider.GetRequiredService<ICustomerRepository>();
+    var catalog = scope.ServiceProvider.GetRequiredService<Catalog>();
+
+    var customer = customers.GetAll().FirstOrDefault();
+    if (customer is null) return; 
+
+    // Avoid duplicating if an order already exists for this customer
+    if (orders.GetAll().Any(o => o.CustomerId == customer.Id)) return;
+
+    var product = catalog.Products.FirstOrDefault();
+    if (product is null) return;
+
+    var order = new Order(
+        customerId: customer.Id,
+        items: new List<OrderItem> { new(product.Id, 2) },
+        status: "Received"
+    );
+
+    orders.Add(order);
+    Console.WriteLine($"\u001b[32mSeeded initial order {order.Id} for customer {customer.Name} with product {product.Name}\u001b[0m");
 }
