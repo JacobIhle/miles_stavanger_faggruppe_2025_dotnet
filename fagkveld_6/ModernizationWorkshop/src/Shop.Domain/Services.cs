@@ -1,55 +1,6 @@
-using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 
 namespace Shop.Domain;
-
-public interface ICustomerRepository
-{
-    Customer? Get(Guid id);
-    IEnumerable<Customer> GetAll();
-    void Add(Customer c);
-}
-
-public interface IProductRepository
-{
-    Product? Get(Guid id);
-    IEnumerable<Product> GetAll();
-    void Add(Product p);
-}
-
-public interface IOrderRepository
-{
-    Order? Get(Guid id);
-    IEnumerable<Order> GetAll();
-    void Add(Order o);
-    void Update(Order o);
-}
-
-public class InMemoryCustomerRepository : ICustomerRepository
-{
-    private readonly ConcurrentDictionary<Guid, Customer> _store = new();
-
-    public Customer? Get(Guid id) => _store.TryGetValue(id, out var c) ? c : null;
-    public IEnumerable<Customer> GetAll() => _store.Values;
-    public void Add(Customer c) => _store[c.Id] = c;
-}
-
-public class InMemoryProductRepository : IProductRepository
-{
-    private readonly ConcurrentDictionary<Guid, Product> _store = new();
-    public Product? Get(Guid id) => _store.TryGetValue(id, out var p) ? p : null;
-    public IEnumerable<Product> GetAll() => _store.Values;
-    public void Add(Product p) => _store[p.Id] = p;
-}
-
-public class InMemoryOrderRepository : IOrderRepository
-{
-    private readonly ConcurrentDictionary<Guid, Order> _store = new();
-    public Order? Get(Guid id) => _store.TryGetValue(id, out var o) ? o : null;
-    public IEnumerable<Order> GetAll() => _store.Values.OrderByDescending(o => o.CreatedUtc);
-    public void Add(Order o) => _store[o.Id] = o;
-    public void Update(Order o) => _store[o.Id] = o;
-}
 
 public class PricingService(Catalog catalog)
 {
